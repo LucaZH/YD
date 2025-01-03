@@ -1,11 +1,9 @@
 import click
-import os
 from rich.console import Console
 from rich.progress import Progress
-from rich.table import Table
 from .config import DEFAULT_SAVE_PATH
 from .downloader import YouTubeDownloader
-from .utils import get_available_formats, create_directory
+from .utils import get_available_formats, create_directory, display_formats_table
 
 console = Console()
 
@@ -19,31 +17,28 @@ def cli():
 @click.option('--output', '-o', default=DEFAULT_SAVE_PATH, help='Output directory')
 @click.option('--list-formats', '-l', is_flag=True, help='List available formats')
 @click.option('--format-id', '-f', help='Specific format ID to download')
-def download(url, quality, output, list_formats, format_id):
+@click.option('--interactive', '-i', is_flag=True, help='Interactive format selection')
+def download(url, quality, output, list_formats, format_id, interactive):
     create_directory(output)
     downloader = YouTubeDownloader(output)
     
-    if list_formats:
-        formats = get_available_formats(url)
-        table = Table(show_header=True, header_style="bold magenta")
-        table.add_column("Format ID", style="dim")
-        table.add_column("Extension")
-        table.add_column("Resolution")
-        table.add_column("File Size (MB)")
-        
-        for fmt in formats:
-            table.add_row(
-                fmt['format_id'],
-                fmt['ext'],
-                fmt['resolution'],
-                str(fmt['filesize'])
-            )
-        
-        console.print("\n[bold]Available formats:[/bold]")
-        console.print(table)
-        return
-
     try:
+        formats = get_available_formats(url)
+        
+        if list_formats or interactive:
+            display_formats_table(formats)
+            
+            if interactive:
+                format_ids = [f['format_id'] for f in formats]
+                while True:
+                    format_id = click.prompt('Enter the Format ID you want to download', type=str)
+                    if format_id in format_ids:
+                        break
+                    console.print("[red]Invalid Format ID. Please choose from the table above.[/red]")
+        
+        if not format_id and not interactive:
+            console.print(f"[cyan]Using quality preset: {quality}[/cyan]")
+            
         with Progress() as progress:
             task = progress.add_task("[cyan]Downloading...", total=100)
             def progress_hook(d):
