@@ -1,5 +1,5 @@
 import yt_dlp
-from .config import QUALITY_FORMATS, YDL_OPTS_BASE
+from .config import QUALITY_FORMATS
 import os
 
 class YouTubeDownloader:
@@ -10,6 +10,7 @@ class YouTubeDownloader:
         opts = {
             'outtmpl': os.path.join(self.output_path, '%(title)s.%(ext)s'),
             'prefer_ffmpeg': True,
+            'no_warnings': True
         }
         
         if format_id:
@@ -30,3 +31,10 @@ class YouTubeDownloader:
                 ydl.download([url])
             except Exception as e:
                 raise Exception(f"Download failed: {str(e)}")
+            
+    def get_video_info(self, url):
+        with yt_dlp.YoutubeDL({'quiet': True, 'no_warnings': True}) as ydl:
+            try:
+                return ydl.extract_info(url, download=False)
+            except Exception as e:
+                raise Exception(f"Failed to get video info: {str(e)}")
