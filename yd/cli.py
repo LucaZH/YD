@@ -2,9 +2,10 @@ import click
 import os
 from rich.console import Console
 from rich.progress import Progress
-from config import DEFAULT_SAVE_PATH
-from downloader import YouTubeDownloader
-from utils import get_available_formats, create_directory
+from rich.table import Table
+from .config import DEFAULT_SAVE_PATH
+from .downloader import YouTubeDownloader
+from .utils import get_available_formats, create_directory
 
 console = Console()
 
@@ -24,9 +25,22 @@ def download(url, quality, output, list_formats, format_id):
     
     if list_formats:
         formats = get_available_formats(url)
-        console.print("[bold]Available formats:[/bold]")
+        table = Table(show_header=True, header_style="bold magenta")
+        table.add_column("Format ID", style="dim")
+        table.add_column("Extension")
+        table.add_column("Resolution")
+        table.add_column("File Size (MB)")
+        
         for fmt in formats:
-            console.print(f"ID: {fmt['format_id']} - {fmt['ext']} - {fmt['resolution']} - {fmt.get('filesize_approx', 'N/A')}MB")
+            table.add_row(
+                fmt['format_id'],
+                fmt['ext'],
+                fmt['resolution'],
+                str(fmt['filesize'])
+            )
+        
+        console.print("\n[bold]Available formats:[/bold]")
+        console.print(table)
         return
 
     try:
@@ -35,7 +49,10 @@ def download(url, quality, output, list_formats, format_id):
             def progress_hook(d):
                 if d['status'] == 'downloading':
                     p = d.get('_percent_str', '0%').replace('%', '')
-                    progress.update(task, completed=float(p))
+                    try:
+                        progress.update(task, completed=float(p))
+                    except ValueError:
+                        pass
             
             downloader.download(url, quality, format_id, progress_hook)
             

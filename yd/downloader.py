@@ -1,5 +1,5 @@
 import yt_dlp
-from config import YDL_OPTS_BASE, QUALITY_FORMATS
+from .config import YDL_OPTS_BASE, QUALITY_FORMATS
 import os
 
 class YouTubeDownloader:
@@ -32,6 +32,6 @@ class YouTubeDownloader:
     def get_video_info(self, url):
         with yt_dlp.YoutubeDL() as ydl:
             try:
-                return ydl.extract_info(url, download=False)
+                return yd.extract_info(url, download=False)
             except Exception as e:
                 raise Exception(f"Failed to get video info: {str(e)}")

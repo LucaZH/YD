@@ -5,6 +5,12 @@ def create_directory(path):
     if not os.path.exists(path):
         os.makedirs(path)
 
+def format_filesize(size_in_bytes):
+    if size_in_bytes is None:
+        return "N/A"
+    size_mb = size_in_bytes / (1024 * 1024)
+    return f"{size_mb:.1f}"
+
 def get_available_formats(url):
     ydl_opts = {
         'quiet': True,
@@ -16,11 +22,12 @@ def get_available_formats(url):
             info = ydl.extract_info(url, download=False)
             formats = []
             for f in info['formats']:
+                filesize = format_filesize(f.get('filesize') or f.get('filesize_approx'))
                 format_dict = {
                     'format_id': f['format_id'],
                     'ext': f.get('ext', 'N/A'),
                     'resolution': f.get('resolution', 'N/A'),
-                    'filesize_approx': f.get('filesize_approx', 0) // (1024 * 1024) 
+                    'filesize': filesize
                 }
                 formats.append(format_dict)
             return formats
