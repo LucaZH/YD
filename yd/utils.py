@@ -44,7 +44,6 @@ def get_available_formats(url):
                              if f.get('acodec') != 'none' and f.get('vcodec') == 'none'), None)
             
             for f in info['formats']:
-                print(f)
                 if f.get('vcodec') == 'none':
                     continue
                 video_size = f.get('filesize') or f.get('filesize_approx') or 0
